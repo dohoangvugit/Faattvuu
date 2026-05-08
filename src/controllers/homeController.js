@@ -17,12 +17,22 @@ class HomeController {
             const trending = await ProductModel.getTrendingSofas(12);
             const categoriesResult = await CategoryModel.getOverview();
             const categories = categoriesResult.rows;
-            res.render('home', {
+
+            // Handle auth query parameters
+            const { auth } = req.query;
+            const renderData = {
                 slides,
                 trendingProducts: trending.rows,
                 categoriesTop: categories.slice(0, 3),
                 categoriesBottom: categories.slice(3, 5),
-            });
+                activeTab: auth === 'register' ? 'register' : 'login',
+            };
+
+            if (auth) {
+                renderData.showAuthModal = true;
+            }
+
+            res.render('home', renderData);
         } catch (error) {
             console.error('❌ Error in home controller:', error.message);
             res.render('home', {
@@ -30,6 +40,7 @@ class HomeController {
                 trendingProducts: [],
                 categoriesTop: [],
                 categoriesBottom: [],
+                activeTab: 'login',
             });
         }
     }
@@ -45,12 +56,14 @@ class HomeController {
             res.render('search', {
                 keyword: q,
                 products: result.rows,
+                activeTab: 'login',
             });
         } catch (error) {
             console.error('❌ Error in search:', error.message);
             res.render('search', {
                 keyword: '',
                 products: [],
+                activeTab: 'login',
             });
         }
     }

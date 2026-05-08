@@ -7,7 +7,7 @@
                 <ul class='nav nav-tabs w-100'>
                     <li class='nav-item w-50 text-center'>
                         <button
-                            class='nav-link active w-100'
+                            class='nav-link {{#if (eq activeTab "login")}}active{{/if}} w-100'
                             data-bs-toggle='tab'
                             data-bs-target='#signInTab'
                             type='button'
@@ -17,7 +17,7 @@
                     </li>
                     <li class='nav-item w-50 text-center'>
                         <button
-                            class='nav-link w-100'
+                            class='nav-link {{#if (eq activeTab "register")}}active{{/if}} w-100'
                             data-bs-toggle='tab'
                             data-bs-target='#signUpTab'
                             type='button'
@@ -40,8 +40,16 @@
                 <div class='tab-content'>
 
                     <!-- ===== SIGN IN ===== -->
-                    <div class='tab-pane fade show active' id='signInTab'>
+                    <div class='tab-pane fade {{#if (ne activeTab "register")}}show active{{/if}}' id='signInTab'>
                         <h5 class='mb-4'>Đăng Nhập</h5>
+
+                        {{#if loginError}}
+                            <div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                                <i class='fa-solid fa-circle-exclamation me-2'></i>
+                                {{loginError}}
+                                <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
+                            </div>
+                        {{/if}}
 
                         <form method='POST' action='/auth/login'>
 
@@ -59,9 +67,12 @@
                                 <input
                                     type='password'
                                     name='password'
-                                    class='form-control'
+                                    class='form-control login-password'
                                     placeholder='******************'
                                 />
+                                <small class='text-danger password-error' style='display: none;'>
+                                    Mật khẩu phải có ít nhất 8 ký tự
+                                </small>
                             </div>
 
                             <div
@@ -80,8 +91,24 @@
                     </div>
 
                     <!-- ===== SIGN UP ===== -->
-                    <div class='tab-pane fade' id='signUpTab'>
+                    <div class='tab-pane fade {{#if (eq activeTab "register")}}show active{{/if}}' id='signUpTab'>
                         <h5 class='mb-4'>Đăng Kí</h5>
+
+                        {{#if registerSuccess}}
+                            <div class='alert alert-success alert-dismissible fade show' role='alert'>
+                                <i class='fa-solid fa-circle-check me-2'></i>
+                                {{registerSuccess}}
+                                <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
+                            </div>
+                        {{/if}}
+
+                        {{#if registerError}}
+                            <div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                                <i class='fa-solid fa-circle-exclamation me-2'></i>
+                                {{registerError}}
+                                <button type='button' class='btn-close' data-bs-dismiss='alert'></button>
+                            </div>
+                        {{/if}}
 
                         <form method='POST' action='/auth/register'>
 
@@ -130,9 +157,12 @@
                                 <input
                                     type='password'
                                     name='password'
-                                    class='form-control'
+                                    class='form-control register-password'
                                     placeholder='******************'
                                 />
+                                <small class='text-danger password-error' style='display: none;'>
+                                    Mật khẩu phải có ít nhất 8 ký tự
+                                </small>
                             </div>
 
                             <button class='btn btn-primary w-100'>
@@ -148,3 +178,47 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Auto-open modal khi có lỗi hoặc thông báo
+    document.addEventListener('DOMContentLoaded', function() {
+        {{#if showAuthModal}}
+            const authModal = new bootstrap.Modal(document.getElementById('authModal'));
+            authModal.show();
+        {{/if}}
+
+        // Password validation - Login form
+        const loginPassword = document.querySelector('.login-password');
+        if (loginPassword) {
+            loginPassword.addEventListener('input', function() {
+                const errorMsg = this.parentElement.querySelector('.password-error');
+                if (this.value.length < 8) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        }
+
+        // Password validation - Register form
+        const registerPassword = document.querySelector('.register-password');
+        if (registerPassword) {
+            registerPassword.addEventListener('input', function() {
+                const errorMsg = this.parentElement.querySelector('.password-error');
+                if (this.value.length < 8) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        }
+    });
+</script>

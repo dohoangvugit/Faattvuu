@@ -1,12 +1,12 @@
 <nav class='navbar navbar-expand-lg bg-white'>
-    <div class='container-fluid'>
+    <div class='container-fluid d-flex align-items-center'>
 
         <a class='navbar-brand' href='#'>
             <img src='/img/logo.jpg' alt='Logo' height='60' width="60" />
         </a>
 
-        <div class='collapse navbar-collapse'>
-            <form class='d-flex align-items-center mx-auto' role='search' method='GET' action='/search'>
+        <div class='flex-grow-1 d-flex justify-content-center'>
+            <form class='d-flex align-items-center' role='search' method='GET' action='/search'>
                 <div class='input-group me-3'>
 
                     <input
@@ -24,8 +24,9 @@
 
                 </div>
             </form>
+        </div>
 
-            <div class='icon ms-auto dropdown'>
+        <div class='icon dropdown'>
                 <a
                     href='#'
                     class='text-dark btn btn-secondary dropdown-toggle bg-white border-0'
@@ -53,6 +54,5 @@
 
                 </ul>
             </div>
-        </div>
     </div>
 </nav>

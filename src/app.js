@@ -45,6 +45,7 @@ app.engine(
         helpers: {
             json: (x) => JSON.stringify(x),
             eq: (a, b) => a === b,
+            ne: (a, b) => a !== b,
             formatPrice: (v) => v.toLocaleString(),
             multiply: (a, b) => a * b,
             formatDate: (date) => {
