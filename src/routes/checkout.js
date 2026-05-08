@@ -7,5 +7,6 @@ const requireLoginPage = require('../mdlw/requireLoginPage');
 
 router.get('/', requireLoginPage, checkoutController.renderCheckoutPage);
 router.post('/momo', requireLogin, checkoutController.createMomoPayment);
+router.post('/confirm-payment', requireLogin, checkoutController.confirmPayment);
 
 module.exports = router;

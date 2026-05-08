@@ -92,6 +92,46 @@ class CheckoutController {
             res.status(500).json({ error: err.message });
         }
     }
+
+    async confirmPayment(req, res) {
+        try {
+            const userId = req.user.id;
+            const cart = await cartModel.getOrCreateCart(userId);
+            const items = await cartModel.getCartItems(cart.id);
+
+            if (!items.length)
+                return res.status(400).json({ error: 'Cart trống' });
+
+            let total = 0;
+            items.forEach(
+                (item) => (total += item.products.price * item.quantity),
+            );
+
+            // Tạo order
+            const order = await orderModel.createOrder(userId, total);
+
+            // Thêm các items vào order
+            for (const item of items) {
+                await orderModel.addItem(
+                    order.id,
+                    item.products.id,
+                    item.quantity,
+                    item.products.price,
+                );
+            }
+
+            // Cập nhật status thành 'completed' (đã thanh toán)
+            await orderModel.updateStatus(order.id, 'completed');
+
+            // Xóa các items trong giỏ hàng
+            await cartModel.clearCart(cart.id);
+
+            res.json({ success: true, orderId: order.id });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: err.message });
+        }
+    }
 }
 
 module.exports = new CheckoutController();

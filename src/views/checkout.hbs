@@ -70,7 +70,10 @@
                                 Quét mã QR bằng ứng dụng MoMo để thanh toán.<br/>
                                 Số tiền: <strong>{{formatPrice total}} VNĐ</strong>
                             </p>
-                            <button class='btn btn-secondary mt-3' onclick='hideMomoQR()'>Hủy</button>
+                            <div class='mt-3'>
+                                <button class='btn btn-success me-2' onclick='confirmPayment()'>Đã thanh toán</button>
+                                <button class='btn btn-secondary' onclick='hideMomoQR()'>Hủy</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -93,4 +96,75 @@
         document.getElementById('paymentForm').style.display = 'block';
         document.getElementById('momoSection').style.display = 'none';
     }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 9999;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function confirmPayment() {
+        fetch('/checkout/confirm-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Chờ đợi đơn hàng được xác nhận');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không thể xác nhận thanh toán'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        });
+    }
 </script>
+
+<style>
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+</style>
