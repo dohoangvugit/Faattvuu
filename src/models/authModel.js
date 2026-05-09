@@ -9,7 +9,7 @@ const auth = {
             .select()
             .single();
         if (error) throw error;
-        return { rows: [data] }; // Return format compatible with pg
+        return { rows: [data] };
     },
 
     async login(username, password) {
@@ -20,7 +20,7 @@ const auth = {
             .eq('password', password)
             .single();
         if (error && error.code !== 'PGRST116') throw error;
-        return { rows: data ? [data] : [] }; // Return format compatible with pg
+        return { rows: data ? [data] : [] };
     },
 };
 

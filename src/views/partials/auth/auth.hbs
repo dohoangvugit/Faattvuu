@@ -51,7 +51,7 @@
                             </div>
                         {{/if}}
 
-                        <form method='POST' action='/auth/login'>
+                        <form method='POST' action='/auth/login' id='loginForm'>
 
                             <div class='mb-3'>
                                 <label class='form-label'>Tên người dùng</label>
@@ -59,7 +59,13 @@
                                     name='username'
                                     class='form-control'
                                     placeholder='Username'
+                                    required
+                                    minlength='3'
+                                    maxlength='50'
                                 />
+                                <small class='text-danger login-username-error' style='display: none;'>
+                                    Tên người dùng phải từ 3-50 ký tự
+                                </small>
                             </div>
 
                             <div class='mb-4'>
@@ -69,6 +75,9 @@
                                     name='password'
                                     class='form-control login-password'
                                     placeholder='******************'
+                                    required
+                                    minlength='8'
+                                    maxlength='100'
                                 />
                                 <small class='text-danger password-error' style='display: none;'>
                                     Mật khẩu phải có ít nhất 8 ký tự
@@ -110,7 +119,7 @@
                             </div>
                         {{/if}}
 
-                        <form method='POST' action='/auth/register'>
+                        <form method='POST' action='/auth/register' id='registerForm'>
 
                             <div class='mb-3'>
                                 <label class='form-label'>Tên người dùng</label>
@@ -118,7 +127,13 @@
                                     name='username'
                                     class='form-control'
                                     placeholder='Username'
+                                    required
+                                    minlength='3'
+                                    maxlength='50'
                                 />
+                                <small class='text-danger register-username-error' style='display: none;'>
+                                    Tên người dùng phải từ 3-50 ký tự
+                                </small>
                             </div>
 
                             <!-- PHONE + FLAG (CHUẨN YÊU CẦU) -->
@@ -137,35 +152,68 @@
                                     </span>
                                     <input
                                         name='phone'
-                                        class='form-control'
-                                        placeholder='Số điện thoại'
+                                        type='tel'
+                                        class='form-control register-phone'
+                                        placeholder='987654321'
+                                        required
+                                        minlength='9'
+                                        maxlength='10'
+                                        pattern='^[0-9]{9,10}$'
                                     />
                                 </div>
+                                <small class='text-danger phone-error' style='display: none;'>
+                                    Số điện thoại phải từ 9-10 chữ số
+                                </small>
                             </div>
 
                             <div class='mb-3'>
                                 <label class='form-label'>Email</label>
                                 <input
                                     name='email'
-                                    class='form-control'
-                                    placeholder='Email address'
+                                    type='email'
+                                    class='form-control register-email'
+                                    placeholder='example@email.com'
+                                    required
+                                    maxlength='100'
                                 />
+                                <small class='text-danger email-error' style='display: none;'>
+                                    Email không hợp lệ
+                                </small>
                             </div>
 
-                            <div class='mb-4'>
-                                <label class='form-label'>Mật khẩu </label>
+                            <div class='mb-3'>
+                                <label class='form-label'>Mật khẩu</label>
                                 <input
                                     type='password'
                                     name='password'
                                     class='form-control register-password'
                                     placeholder='******************'
+                                    required
+                                    minlength='8'
+                                    maxlength='100'
                                 />
-                                <small class='text-danger password-error' style='display: none;'>
+                                <small class='text-danger register-password-error' style='display: none;'>
                                     Mật khẩu phải có ít nhất 8 ký tự
                                 </small>
                             </div>
 
-                            <button class='btn btn-primary w-100'>
+                            <div class='mb-4'>
+                                <label class='form-label'>Xác nhận mật khẩu</label>
+                                <input
+                                    type='password'
+                                    name='confirmPassword'
+                                    class='form-control register-confirm-password'
+                                    placeholder='******************'
+                                    required
+                                    minlength='8'
+                                    maxlength='100'
+                                />
+                                <small class='text-danger confirm-password-error' style='display: none;'>
+                                    Mật khẩu không trùng khớp
+                                </small>
+                            </div>
+
+                            <button type='submit' class='btn btn-primary w-100'>
                                 Đăng Kí
                             </button>
 
@@ -180,6 +228,15 @@
 </div>
 
 <script>
+    // Utility Functions
+    const ValidationUtils = {
+        trimInput: (value) => value.trim(),
+        isValidEmail: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+        isValidPhone: (phone) => /^[0-9]{9,10}$/.test(phone),
+        isValidUsername: (username) => /^[a-zA-Z0-9_]{3,50}$/.test(username),
+        isValidPassword: (password) => password.length >= 8,
+    };
+
     // Auto-open modal khi có lỗi hoặc thông báo
     document.addEventListener('DOMContentLoaded', function() {
         {{#if showAuthModal}}
@@ -187,36 +244,216 @@
             authModal.show();
         {{/if}}
 
-        // Password validation - Login form
+        // ===== LOGIN FORM VALIDATION =====
+        const loginForm = document.getElementById('loginForm');
         const loginPassword = document.querySelector('.login-password');
+        const loginUsername = loginForm?.querySelector('input[name="username"]');
+
         if (loginPassword) {
             loginPassword.addEventListener('input', function() {
+                const value = this.value;
                 const errorMsg = this.parentElement.querySelector('.password-error');
-                if (this.value.length < 8) {
+                const isValid = ValidationUtils.isValidPassword(value);
+                
+                if (!isValid && value.length > 0) {
                     errorMsg.style.display = 'block';
                     this.classList.add('is-invalid');
                     this.classList.remove('is-valid');
-                } else {
+                } else if (isValid) {
                     errorMsg.style.display = 'none';
                     this.classList.remove('is-invalid');
                     this.classList.add('is-valid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid', 'is-valid');
                 }
             });
         }
 
-        // Password validation - Register form
-        const registerPassword = document.querySelector('.register-password');
-        if (registerPassword) {
-            registerPassword.addEventListener('input', function() {
-                const errorMsg = this.parentElement.querySelector('.password-error');
-                if (this.value.length < 8) {
+        if (loginUsername) {
+            loginUsername.addEventListener('blur', function() {
+                const value = ValidationUtils.trimInput(this.value);
+                const errorMsg = this.parentElement.querySelector('.login-username-error');
+                const isValid = ValidationUtils.isValidUsername(value);
+                
+                if (!isValid && value.length > 0) {
                     errorMsg.style.display = 'block';
                     this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
                 } else {
                     errorMsg.style.display = 'none';
                     this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                const username = ValidationUtils.trimInput(loginUsername?.value || '');
+                const password = loginPassword?.value || '';
+
+                if (!ValidationUtils.isValidUsername(username) || !ValidationUtils.isValidPassword(password)) {
+                    e.preventDefault();
+                    alert('Vui lòng kiểm tra lại thông tin đăng nhập');
+                }
+
+                // Trim input before sending
+                if (loginUsername) loginUsername.value = username;
+            });
+        }
+
+        // ===== REGISTER FORM VALIDATION =====
+        const registerForm = document.getElementById('registerForm');
+        const registerPassword = registerForm?.querySelector('.register-password');
+        const registerConfirmPassword = registerForm?.querySelector('.register-confirm-password');
+        const registerUsername = registerForm?.querySelector('input[name="username"]');
+        const registerEmail = registerForm?.querySelector('.register-email');
+        const registerPhone = registerForm?.querySelector('.register-phone');
+
+        // Username validation
+        if (registerUsername) {
+            registerUsername.addEventListener('blur', function() {
+                const value = ValidationUtils.trimInput(this.value);
+                const errorMsg = this.parentElement.querySelector('.register-username-error');
+                const isValid = ValidationUtils.isValidUsername(value);
+
+                if (!isValid && value.length > 0) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        // Email validation
+        if (registerEmail) {
+            registerEmail.addEventListener('blur', function() {
+                const value = ValidationUtils.trimInput(this.value);
+                const errorMsg = this.parentElement.querySelector('.email-error');
+                const isValid = ValidationUtils.isValidEmail(value);
+
+                if (!isValid && value.length > 0) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        // Phone validation
+        if (registerPhone) {
+            registerPhone.addEventListener('blur', function() {
+                const value = ValidationUtils.trimInput(this.value);
+                const errorMsg = this.parentElement.querySelector('.phone-error');
+                const isValid = ValidationUtils.isValidPhone(value);
+
+                if (!isValid && value.length > 0) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+
+        // Password validation
+        if (registerPassword) {
+            registerPassword.addEventListener('input', function() {
+                const value = this.value;
+                const errorMsg = this.parentElement.querySelector('.register-password-error');
+                const isValid = ValidationUtils.isValidPassword(value);
+
+                if (!isValid && value.length > 0) {
+                    errorMsg.style.display = 'block';
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else if (isValid) {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
                     this.classList.add('is-valid');
+                } else {
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid', 'is-valid');
+                }
+
+                // Check confirm password match
+                if (registerConfirmPassword && registerConfirmPassword.value) {
+                    validatePasswordMatch();
+                }
+            });
+        }
+
+        // Confirm password validation
+        if (registerConfirmPassword) {
+            registerConfirmPassword.addEventListener('input', function() {
+                validatePasswordMatch();
+            });
+        }
+
+        function validatePasswordMatch() {
+            const pwd = registerPassword?.value || '';
+            const confirmPwd = registerConfirmPassword?.value || '';
+            const errorMsg = registerConfirmPassword?.parentElement.querySelector('.confirm-password-error');
+
+            if (confirmPwd && pwd !== confirmPwd) {
+                errorMsg.style.display = 'block';
+                registerConfirmPassword.classList.add('is-invalid');
+                registerConfirmPassword.classList.remove('is-valid');
+            } else if (pwd === confirmPwd && confirmPwd.length > 0) {
+                errorMsg.style.display = 'none';
+                registerConfirmPassword.classList.remove('is-invalid');
+                registerConfirmPassword.classList.add('is-valid');
+            } else {
+                errorMsg.style.display = 'none';
+                registerConfirmPassword.classList.remove('is-invalid', 'is-valid');
+            }
+        }
+
+        // Form submission validation
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                const username = ValidationUtils.trimInput(registerUsername?.value || '');
+                const email = ValidationUtils.trimInput(registerEmail?.value || '');
+                const phone = ValidationUtils.trimInput(registerPhone?.value || '');
+                const password = registerPassword?.value || '';
+                const confirmPassword = registerConfirmPassword?.value || '';
+
+                let isValid = true;
+                let errorMsg = '';
+
+                if (!ValidationUtils.isValidUsername(username)) {
+                    isValid = false;
+                    errorMsg += 'Tên người dùng không hợp lệ\n';
+                }
+                if (!ValidationUtils.isValidEmail(email)) {
+                    isValid = false;
+                    errorMsg += 'Email không hợp lệ\n';
+                }
+                if (!ValidationUtils.isValidPhone(phone)) {
+                    isValid = false;
+                    errorMsg += 'Số điện thoại không hợp lệ\n';
+                }
+                if (!ValidationUtils.isValidPassword(password)) {
+                    isValid = false;
+                    errorMsg += 'Mật khẩu phải có ít nhất 8 ký tự\n';
+                }
+                if (password !== confirmPassword) {
+                    isValid = false;
+                    errorMsg += 'Mật khẩu xác nhận không khớp\n';
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert(errorMsg);
+                } else {
+                    // Trim all inputs before sending
+                    if (registerUsername) registerUsername.value = username;
+                    if (registerEmail) registerEmail.value = email;
+                    if (registerPhone) registerPhone.value = phone;
                 }
             });
         }
