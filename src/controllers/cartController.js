@@ -1,4 +1,5 @@
 const cartModel = require('../models/cartModel');
+const orderModel = require('../models/orderModel');
 
 class CartController {
     // API GET CART JSON
@@ -82,9 +83,21 @@ class CartController {
                 total += item.products.price * item.quantity;
             });
 
+            // Fetch order history
+            const orders = await orderModel.getOrdersByUserId(userId);
+            
+            // Fetch items for each order
+            const ordersWithItems = await Promise.all(
+                orders.map(async (order) => {
+                    const orderItems = await orderModel.getOrderItemsWithProducts(order.id);
+                    return { ...order, items: orderItems };
+                })
+            );
+
             res.render('cart', {
                 cart: items,
                 total,
+                orders: ordersWithItems,
             });
         } catch (err) {
             console.error(err);

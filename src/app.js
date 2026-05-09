@@ -58,6 +58,10 @@ app.engine(
                     minute: '2-digit',
                 });
             },
+            formatNumber: (num) => {
+                if (!num && num !== 0) return '';
+                return Number(num).toLocaleString('vi-VN');
+            },
         },
     }),
 );

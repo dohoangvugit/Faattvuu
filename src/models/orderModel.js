@@ -50,6 +50,25 @@ const orderModel = {
         if (error) throw error;
         return data;
     },
+
+    async getOrdersByUserId(userId) {
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data;
+    },
+
+    async getOrderItemsWithProducts(orderId) {
+        const { data, error } = await supabase
+            .from('order_items')
+            .select('*, products(*)')
+            .eq('order_id', orderId);
+        if (error) throw error;
+        return data;
+    },
 };
 
 module.exports = orderModel;

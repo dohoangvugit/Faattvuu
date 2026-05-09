@@ -81,6 +81,115 @@
         <h3>Giỏ hàng trống </h3>
     {{/if}}
 
+    <!-- ORDER HISTORY SECTION -->
+    <hr class='my-5'>
+    
+    <h2 class='display-6 fw-light mb-4'>Lịch sử đơn hàng</h2>
+    
+    {{#if orders.length}}
+        <div class='table-responsive'>
+            <table class='table table-hover'>
+                <thead class='table-light'>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày tạo</th>
+                        <th>Trạng thái</th>
+                        <th>Tổng tiền</th>
+                        <th>Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each orders}}
+                        <tr>
+                            <td>
+                                <strong>#{{this.id}}</strong>
+                            </td>
+                            <td>
+                                {{#if this.created_at}}
+                                    {{formatDate this.created_at}}
+                                {{else}}
+                                    N/A
+                                {{/if}}
+                            </td>
+                            <td>
+                                {{#if (eq this.status 'pending')}}
+                                    <span class='badge bg-warning'>Chờ xử lý</span>
+                                {{else if (eq this.status 'processing')}}
+                                    <span class='badge bg-info'>Đang xử lý</span>
+                                {{else if (eq this.status 'shipped')}}
+                                    <span class='badge bg-primary'>Đã gửi</span>
+                                {{else if (eq this.status 'delivered')}}
+                                    <span class='badge bg-success'>Đã giao</span>
+                                {{else if (eq this.status 'cancelled')}}
+                                    <span class='badge bg-danger'>Đã hủy</span>
+                                {{else}}
+                                    <span class='badge bg-secondary'>{{this.status}}</span>
+                                {{/if}}
+                            </td>
+                            <td>
+                                <strong>{{formatNumber this.total_amount}} VNĐ</strong>
+                            </td>
+                            <td>
+                                <button
+                                    class='btn btn-sm btn-outline-primary'
+                                    onclick='toggleOrderDetails({{this.id}})'
+                                >
+                                    Xem
+                                </button>
+                            </td>
+                        </tr>
+                        <tr id='order-details-{{this.id}}' class='order-details-row' style='display: none;'>
+                            <td colspan='5'>
+                                <div class='p-3 bg-light rounded'>
+                                    <h5>Chi tiết sản phẩm:</h5>
+                                    <table class='table table-sm table-borderless'>
+                                        <thead>
+                                            <tr>
+                                                <th>Sản phẩm</th>
+                                                <th>Giá</th>
+                                                <th>Số lượng</th>
+                                                <th>Tổng cộng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{#each this.items}}
+                                                <tr>
+                                                    <td>
+                                                        {{#if this.products}}
+                                                            <strong>{{this.products.name}}</strong>
+                                                        {{else}}
+                                                            <em>Sản phẩm không tồn tại</em>
+                                                        {{/if}}
+                                                    </td>
+                                                    <td>{{formatNumber this.price}} VNĐ</td>
+                                                    <td>{{this.quantity}}</td>
+                                                    <td><strong>{{formatNumber (multiply this.price this.quantity)}} VNĐ</strong></td>
+                                                </tr>
+                                            {{/each}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    {{else}}
+        <p class='text-muted'>Chưa có đơn hàng nào</p>
+    {{/if}}
+
 </div>
 
 <script src='/js/cart.js'></script>
+
+<script>
+    function toggleOrderDetails(orderId) {
+        const detailsRow = document.getElementById('order-details-' + orderId);
+        if (detailsRow.style.display === 'none') {
+            detailsRow.style.display = 'table-row';
+        } else {
+            detailsRow.style.display = 'none';
+        }
+    }
+</script>
