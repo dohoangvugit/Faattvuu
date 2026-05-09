@@ -31,17 +31,24 @@
                     <i class='fa-regular fa-user fs-4'></i>
                 </a>
                 <ul class='dropdown-menu dropdown-menu-end'>
-                    {{! <li><a class="dropdown-item" href="#">Giỏ hàng</a></li> }}
-                    <li>
+                    {{#if user}}
+                        <span class='dropdown-item'>Xin chào {{user.username}}</span>
                         <a
-                            class='dropdown-item'
-                            href='#'
-                            data-bs-toggle='modal'
-                            data-bs-target='#authModal'
-                        >
-                            Đăng nhập / Đăng ký
-                        </a>
-                    </li>
+                            class='dropdown-item text-danger'
+                            href='/auth/logout'
+                        >Đăng xuất</a>
+                    {{else}}
+                        <li>
+                            <a
+                                class='dropdown-item'
+                                href='#'
+                                data-bs-toggle='modal'
+                                data-bs-target='#authModal'
+                            >
+                                Đăng nhập / Đăng ký
+                            </a>
+                        </li>
+                    {{/if}}
                 </ul>
             </div>
         </div>
