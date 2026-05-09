@@ -19,17 +19,17 @@
                 <td>{{email}}</td>
                 <td>{{phone}}</td>
                 <td>
-                    <span class='badge {{#eq role "admin"}}bg-danger{{else}}bg-primary{{/eq}}'>
-                        {{#eq role "admin"}}Admin{{else}}Khách{{/eq}}
+                    <span class='badge {{#eq role "admin"}}bg-warning{{else}}bg-light{{/eq}}' style='font-size: 13px; padding: 6px 10px; font-weight: 600; white-space: nowrap; display: inline-block; color: #000; border: 1px solid #ddd;'>
+                        {{#eq role "admin"}}<i class='fas fa-crown'></i> Admin{{else}}<i class='fas fa-user'></i> Client{{/eq}}
                     </span>
                 </td>
                 <td>
-                    <select class='form-select form-select-sm changeRole' data-id='{{id}}' style='width: auto; display: inline-block;'>
-                        <option value=''>Đổi vai trò</option>
+                    <select class='form-select form-select-sm changeRole' data-id='{{id}}' style='width: 130px;' title='Thay đổi vai trò'>
+                        <option value=''>-- Thay đổi --</option>
                         <option value='user' {{#eq role "user"}}selected{{/eq}}>Khách hàng</option>
                         <option value='admin' {{#eq role "admin"}}selected{{/eq}}>Admin</option>
                     </select>
-                    <button class='btn btn-danger btn-sm btnDelete' data-id='{{id}}'>Xóa</button>
+                    <button class='btn btn-danger btn-sm btnDelete' data-id='{{id}}' style='margin-left: 5px;'>Xóa</button>
                 </td>
             </tr>
         {{/each}}
