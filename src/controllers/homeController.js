@@ -14,7 +14,7 @@ class HomeController {
                 price: product.price,
             }));
 
-            const trending = await ProductModel.getTrendingSofas(12);
+            const trending = await ProductModel.getBestSellingProducts(7);
             const categoriesResult = await CategoryModel.getOverview();
             const categories = categoriesResult.rows;
 

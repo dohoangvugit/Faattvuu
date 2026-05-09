@@ -126,6 +126,40 @@ const ProductModel = {
         if (error) throw error;
         return { rows: data };
     },
+
+    async getBestSellingProducts(limit = 7) {
+        const { data, error } = await supabase
+            .from('order_items')
+            .select('product_id, quantity, products(id, name, price, image)')
+            .order('quantity', { ascending: false });
+        if (error) throw error;
+
+        // Group by product and sum quantities
+        const productMap = new Map();
+        data.forEach(item => {
+            const product = item.products;
+            if (product) {
+                if (productMap.has(product.id)) {
+                    productMap.get(product.id).totalQuantity += item.quantity;
+                } else {
+                    productMap.set(product.id, {
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                        totalQuantity: item.quantity,
+                    });
+                }
+            }
+        });
+
+        // Convert to array and sort by total quantity
+        const bestSellers = Array.from(productMap.values())
+            .sort((a, b) => b.totalQuantity - a.totalQuantity)
+            .slice(0, limit);
+
+        return { rows: bestSellers };
+    },
 };
 
 module.exports = ProductModel;
