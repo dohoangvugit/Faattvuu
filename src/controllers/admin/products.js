@@ -1,21 +1,62 @@
+require('dotenv').config()
 const ProductModel = require('../../models/productsModel');
 const CategoryModel = require('../../models/categoryModel');
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+
+
+// Hàm helper hỗ trợ upload file buffer lên Supabase và lấy Public URL
+async function uploadToSupabase(file) {
+    // Tạo tên file ngẫu nhiên để tránh trùng lặp
+    const ext = file.originalname.split('.').pop();
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
+    const filePath = `products/${filename}`;
+
+    // Upload buffer từ RAM lên bucket 'anh'
+    const { data, error } = await supabase.storage
+        .from('anh')
+        .upload(filePath, file.buffer, {
+            contentType: file.mimetype,
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    // Lấy URL công khai
+    const { data: publicUrlData } = supabase.storage
+        .from('anh')
+        .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+}
+
+// Hàm helper hỗ trợ xóa ảnh cũ trên Supabase Storage nếu cần dọn dẹp không gian lưu trữ
+async function deleteFromSupabase(publicUrl) {
+    try {
+        if (!publicUrl || !publicUrl.includes('supabase.co/storage/v1/object/public/anh/')) return;
+        
+        // Trích xuất lại đường dẫn tương đối (relative path) từ URL tuyệt đối
+        const filePath = publicUrl.split('/public/anh/')[1];
+        if (filePath) {
+            await supabase.storage.from('anh').remove([filePath]);
+        }
+    } catch (err) {
+        console.error('Không thể xóa ảnh cũ trên Supabase:', err.message);
+    }
+}
 
 class AdminProductController {
     // POST /admin/products
     async create(req, res) {
         try {
-            const { name, brand, price, description, currentInventory, categoryId } =
-                req.body;
+            const { name, brand, price, description, currentInventory, categoryId } = req.body;
 
-            // Kiểm tra file upload
+            // Kiểm tra file upload (lúc này Multer Memory lưu ở req.file)
             if (!req.file) {
                 return res.status(400).send('Vui lòng chọn ảnh sản phẩm');
             }
 
-            const imagePath = `/uploads/products/${req.file.filename}`;
+            // Thực hiện tải ảnh lên Supabase Storage
+            const imageUrl = await uploadToSupabase(req.file);
 
             const productData = await ProductModel.create({
                 name,
@@ -23,7 +64,7 @@ class AdminProductController {
                 price,
                 description,
                 inventory: currentInventory,
-                image: imagePath,
+                image: imageUrl, // Lưu trực tiếp chuỗi URL đầy đủ vào DB
             });
 
             // Lưu danh mục cho sản phẩm nếu có chọn
@@ -50,11 +91,10 @@ class AdminProductController {
 
             const product = result.rows[0];
 
-            const filePath = path.join('public', product.image);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+            // Xóa file vật lý trên Cloud Supabase
+            await deleteFromSupabase(product.image);
 
+            // Xóa thông tin sản phẩm trong DB
             await ProductModel.deleteById(id);
 
             res.json({ success: true });
@@ -138,14 +178,13 @@ class AdminProductController {
             const oldProduct = result.rows[0];
             let imagePath = oldProduct.image;
 
-            // nếu upload ảnh mới
+            // Nếu người dùng upload ảnh mới thay thế
             if (req.file) {
-                const oldImagePath = path.join('public', oldProduct.image);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                }
+                // 1. Dọn dẹp xóa ảnh cũ trên Supabase trước
+                await deleteFromSupabase(oldProduct.image);
 
-                imagePath = `/uploads/products/${req.file.filename}`;
+                // 2. Tải ảnh mới lên
+                imagePath = await uploadToSupabase(req.file);
             }
 
             await ProductModel.update(id, {
