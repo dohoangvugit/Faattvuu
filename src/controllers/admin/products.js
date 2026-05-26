@@ -1,12 +1,10 @@
 require('dotenv').config()
 const ProductModel = require('../../models/productsModel');
 const CategoryModel = require('../../models/categoryModel');
-const { createClient } = require('@supabase/supabase-js');
+const supabase = require('../../config/supabase');
 
 
-// Hàm helper hỗ trợ upload file buffer lên Supabase và lấy Public URL
 async function uploadToSupabase(file) {
-    // Tạo tên file ngẫu nhiên để tránh trùng lặp
     const ext = file.originalname.split('.').pop();
     const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${ext}`;
     const filePath = `products/${filename}`;
