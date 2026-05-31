@@ -26,14 +26,14 @@ const CategoryModel = {
 
     async getOverview() {
         try {
-            // Get categories with product counts using aggregation
+            // Get categories with related product rows for count
             const { data: categories, error } = await supabase
                 .from('categories')
                 .select(`
                     id,
                     name,
                     slug,
-                    product_categories(count)
+                    product_categories(product_id)
                 `)
                 .order('id')
                 .limit(5);
